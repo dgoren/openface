@@ -1,21 +1,25 @@
 # Usage
-## Existing Models
+
+## [API Documentation](http://openface-api.readthedocs.org/en/latest/index.html)
+
+## Example
+
 See [the image comparison demo](https://github.com/cmusatyalab/openface/blob/master/demos/compare.py) for a complete example
 written in Python using a naive Torch subprocess to process the faces.
 
 ```Python
 import openface
-from openface.alignment import NaiveDlib # Depends on dlib.
 
 # `args` are parsed command-line arguments.
 
-align = NaiveDlib(args.dlibFaceMean, args.dlibFacePredictor)
-net = openface.TorchWrap(args.networkModel, imgDim=args.imgDim, cuda=args.cuda)
+align = openface.AlignDlib(args.dlibFacePredictor)
+net = openface.TorchNeuralNet(args.networkModel, args.imgDim, cuda=args.cuda)
 
 # `img` is a numpy matrix containing the RGB pixels of the image.
 bb = align.getLargestFaceBoundingBox(img)
-alignedFace = align.alignImg("affine", args.imgDim, img, bb)
-rep1 = net.forwardImage(alignedFace)
+alignedFace = align.align(args.imgDim, img, bb,
+                          landmarkIndices=openface.AlignDlib.OUTER_EYES_AND_NOSE)
+rep1 = net.forward(alignedFace)
 
 # `rep2` obtained similarly.
 d = rep1 - rep2

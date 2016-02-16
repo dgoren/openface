@@ -7,6 +7,14 @@ deep neural networks.*
 
 ---
 
+## News
+
++ 2016-01-19: OpenFace 0.2.0 released!
+  See [this blog post](http://bamos.github.io/2016/01/19/openface-0.2.0/)
+  for more details.
+
+---
+
 OpenFace is a Python and [Torch](http://torch.ch) implementation of
 face recognition with deep neural networks and is based on
 the CVPR 2015 paper
@@ -14,14 +22,15 @@ the CVPR 2015 paper
 by Florian Schroff, Dmitry Kalenichenko, and James Philbin at Google.
 Torch allows the network to be executed on a CPU or with CUDA.
 
-**Crafted by [Brandon Amos](http://bamos.github.io) in the
-[Elijah](http://elijah.cs.cmu.edu) research group at
+**Crafted by [Brandon Amos](http://bamos.github.io) in
+[Satya's](https://www.cs.cmu.edu/~satya/) research group at
 Carnegie Mellon University.**
 
 ---
 
 + The code is available on GitHub at
   [cmusatyalab/openface](https://github.com/cmusatyalab/openface).
++ [API Documentation](http://openface-api.readthedocs.org/en/latest/index.html)
 + Join the
   [cmu-openface group](https://groups.google.com/forum/#!forum/cmu-openface)
   or the
@@ -46,7 +55,7 @@ No! Accuracies from research papers have just begun to surpass
 human accuracies on some benchmarks.
 The accuracies of open source face recognition systems lag
 behind the state-of-the-art.
-See [our accuracy comparisons](http://cmusatyalab.github.io/openface/accuracy/)
+See [our accuracy comparisons](http://cmusatyalab.github.io/openface/models-and-accuracies/)
 on the famous LFW benchmark.
 
 ---
@@ -55,7 +64,7 @@ on the famous LFW benchmark.
 
 We do not support the use of this project in applications
 that violate privacy and security.
-We are using this to help cognitively impaired users to
+We are using this to help cognitively impaired users
 sense and understand the world around them.
 
 ---
@@ -103,18 +112,19 @@ The reference may change in the future.
 The BibTeX entry requires the `url` LaTeX package.
 
 ```
-@misc{amos2015openface,
+@misc{amos2016openface,
     title        = {{OpenFace: Face Recognition with Deep Neural Networks}},
-    author       = {Amos, Brandon and Harkes, Jan and Pillai, Padmanabhan and Elgazzar, Khalid and Satyanarayanan, Mahadev},
+    author       = {Amos, Brandon and Ludwiczuk, Bartosz and Harkes, Jan and
+                    Pillai, Padmanabhan and Elgazzar, Khalid and Satyanarayanan, Mahadev},
     howpublished = {\url{http://github.com/cmusatyalab/openface}},
-    note         = {Accessed: 2015-11-11}
+    note         = {Accessed: 2016-01-11}
 }
 
-Brandon Amos, Jan Harkes, Padmanabhan Pillai, Khalid Elgazzar,
-and Mahadev Satyanarayanan.
+Brandon Amos, Bartosz Ludwiczuk, Jan Harkes, Padmanabhan Pillai,
+Khalid Elgazzar, and Mahadev Satyanarayanan.
 OpenFace: Face Recognition with Deep Neural Networks.
 http://github.com/cmusatyalab/openface.
-Accessed: 2015-11-11.
+Accessed: 2016-01-11
 ```
 
 # Acknowledgements
@@ -142,10 +152,10 @@ Accessed: 2015-11-11.
   Junjue Wang for insightful discussions.
 
 # Licensing
-The source code and trained models `nn4.v1.t7` and
-`celeb-classifier.nn4.v1.t7` are copyright
-Carnegie Mellon University and licensed under the
-[Apache 2.0 License](https://github.com/cmusatyalab/openface/tree/master/LICENSE).
+Unless otherwise stated, the source code and trained Torch and Python
+model files are copyright Carnegie Mellon University and licensed
+under the
+[Apache 2.0 License](https://github.com/cmusatyalab/openface/blob/master/LICENSE).
 Portions from the following third party sources have
 been modified and are included in this repository.
 These portions are noted in the source files and are

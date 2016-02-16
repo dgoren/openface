@@ -41,7 +41,7 @@ person-m
 ### 2. Preprocess the raw images
 Change `8` to however many
 separate processes you want to run:
-`for N in {1..8}; do ./util/align-dlib.py <path-to-raw-data> align innerEyesAndBottomLip <path-to-aligned-data> --size 96 & done`.
+`for N in {1..8}; do ./util/align-dlib.py <path-to-raw-data> align outerEyesAndNose <path-to-aligned-data> --size 96 & done`.
 
 ### 3. Generate Representations
 `./batch-represent/main.lua -outDir <feature-directory> -data <path-to-aligned-data>`
@@ -55,10 +55,9 @@ a Python pickle.
 Training uses [scikit-learn](http://scikit-learn.org) to perform
 a grid search over SVM parameters.
 For 1000's of images, training the SVMs takes seconds.
-Our trained model obtains 87% accuracy on this set of data.
 
 ## Classifying New Images
-We have released a `celeb-classifier.nn4.v1.pkl` classification model
+We have released a `celeb-classifier.nn4.small2.v1.pkl` classification model
 that is trained on about 6000 total images of the following people,
 which are the people with the most images in our dataset.
 Classifiers can be created with far less images per
@@ -80,17 +79,17 @@ the model has no knowledge of.
 For an unknown person, a prediction still needs to be made, but
 the confidence score is usually lower.
 
-Run the classifier on your images with:
+Run the classifier with:
 
 ```
-./demos/classifier.py infer ./models/openface/celeb-classifier.nn4.v1.pkl ./your-image.png
+./demos/classifier.py infer ./models/openface/celeb-classifier.nn4.small2.v1.pkl images/examples/{carell,adams,lennon}*
 ```
 
 | Person | Image | Prediction | Confidence |
 |---|---|---|---|
-| Carell | <img src='https://raw.githubusercontent.com/cmusatyalab/openface/master/images/examples/carell.jpg' width='200px'></img> | SteveCarell | 0.96 |
-| Adams | <img src='https://raw.githubusercontent.com/cmusatyalab/openface/master/images/examples/adams.jpg' width='200px'></img> | AmyAdams | 0.98 |
-| Lennon 1 (Unknown) | <img src='https://raw.githubusercontent.com/cmusatyalab/openface/master/images/examples/lennon-1.jpg' width='200px'></img> | DavidBoreanaz | 0.27 |
+| Carell | <img src='https://raw.githubusercontent.com/cmusatyalab/openface/master/images/examples/carell.jpg' width='200px'></img> | SteveCarell | 0.97 |
+| Adams | <img src='https://raw.githubusercontent.com/cmusatyalab/openface/master/images/examples/adams.jpg' width='200px'></img> | AmyAdams | 0.81 |
+| Lennon 1 (Unknown) | <img src='https://raw.githubusercontent.com/cmusatyalab/openface/master/images/examples/lennon-1.jpg' width='200px'></img> | SteveCarell | 0.50 |
 | Lennon 2 (Unknown) | <img src='https://raw.githubusercontent.com/cmusatyalab/openface/master/images/examples/lennon-2.jpg' width='200px'></img> | DavidBoreanaz | 0.43 |
 
 # Minimal Working Example to Extract Features
@@ -99,7 +98,7 @@ Run the classifier on your images with:
 mkdir -p classify-test/raw/{lennon,clapton}
 cp images/examples/lennon-* classify-test/raw/lennon
 cp images/examples/clapton-* classify-test/raw/clapton
-./util/align-dlib.py classify-test/raw align innerEyesAndBottomLip classify-test/aligned --size 96
+./util/align-dlib.py classify-test/raw align outerEyesAndNose classify-test/aligned --size 96
 ./batch-represent/main.lua -outDir classify-test/features -data classify-test/aligned
 ...
 nImgs:  4

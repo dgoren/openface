@@ -1,6 +1,6 @@
 #!/usr/bin/env th
 --
--- Copyright 2015 Carnegie Mellon University
+-- Copyright 2015-2016 Carnegie Mellon University
 --
 -- Licensed under the Apache License, Version 2.0 (the "License");
 -- you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-
--- Warning: This is very unstable!
--- Please join us in improving it at:
---   https://github.com/cmusatyalab/openface/issues/1
---   https://github.com/cmusatyalab/openface/issues/4
 
 require 'torch'
 require 'nn'
@@ -62,7 +57,7 @@ while true do
    if imgPath and imgPath:len() ~= 0 then
       img[1] = image.load(imgPath, 3, byte)
       img[1] = image.scale(img[1], opt.imgDim, opt.imgDim)
-      local rep = nil
+      local rep
       if opt.cuda then
          imgCuda:copy(img)
          rep = net:forward(imgCuda):float()

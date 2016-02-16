@@ -1,4 +1,4 @@
--- Copyright 2015 Carnegie Mellon University
+-- Copyright 2015-2016 Carnegie Mellon University
 --
 -- Licensed under the Apache License, Version 2.0 (the "License");
 -- you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
 
 testLogger = optim.Logger(paths.concat(opt.save, 'test.log'))
 
-local testDataIterator = function()
-   testLoader:reset()
-   return function() return testLoader:get_batch(false) end
-end
-
 local batchNumber
 local triplet_loss
 local timer = torch.Timer()
@@ -28,17 +23,21 @@ function test()
    print("==> online epoch # " .. epoch)
 
    batchNumber = 0
-   cutorch.synchronize()
+   if opt.cuda then
+      cutorch.synchronize()
+   end
    timer:reset()
 
    model:evaluate()
-   model:cuda()
+   if opt.cuda then
+      model:cuda()
+   end
 
    triplet_loss = 0
    for i=1,opt.testEpochSize do
       donkeys:addjob(
          function()
-            local inputs, labels = testLoader:sampleTriplet(opt.batchSize)
+            local inputs, _ = testLoader:sampleTriplet(opt.batchSize)
             inputs = inputs:float()
             return sendTensor(inputs)
          end,
@@ -51,7 +50,9 @@ function test()
    end
 
    donkeys:synchronize()
-   cutorch.synchronize()
+   if opt.cuda then
+      cutorch.synchronize()
+   end
 
    triplet_loss = triplet_loss / opt.testEpochSize
    testLogger:add{
@@ -66,7 +67,12 @@ function test()
 end
 
 local inputsCPU = torch.FloatTensor()
-local inputs = torch.CudaTensor()
+local inputs
+if opt.cuda then
+   inputs = torch.CudaTensor()
+else
+   inputs = torch.FloatTensor()
+end
 
 function testBatch(inputsThread)
    receiveTensor(inputsThread, inputsCPU)
@@ -77,7 +83,9 @@ function testBatch(inputsThread)
          inputs:sub(opt.batchSize+1, 2*opt.batchSize),
          inputs:sub(2*opt.batchSize+1, 3*opt.batchSize)})
    local err = criterion:forward(embeddings)
-   cutorch.synchronize()
+   if opt.cuda then
+      cutorch.synchronize()
+   end
 
    triplet_loss = triplet_loss + err
    print(('Epoch: Testing [%d][%d/%d] Triplet Loss: %.2f'):format(epoch, batchNumber,

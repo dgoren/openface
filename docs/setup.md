@@ -20,40 +20,44 @@ See [#42](https://github.com/cmusatyalab/openface/issues/42).
 Clone with `--recursive` or run `git submodule init && git submodule update`
 after checking out.
 
-## Download the models
-Run [models/get-models.sh](https://github.com/cmusatyalab/openface/blob/master/models/get-models.sh)
-to download pre-trained OpenFace
-models on the combined CASIA-WebFace and FaceScrub database.
-This also downloads dlib's pre-trained model for face landmark detection.
-This will incur about 500MB of network traffic for the compressed
-models that will decompress to about 1GB on disk.
-
-Be sure the md5 checksums match the following.
-Use `md5sum` in Linux and `md5` in OSX.
-
-```
-openface(master)$ md5sum models/{dlib/*.dat,openface/*.{pkl,t7}}
-73fde5e05226548677a050913eed4e04  models/dlib/shape_predictor_68_face_landmarks.dat
-c0675d57dc976df601b085f4af67ecb9  models/openface/celeb-classifier.nn4.v1.pkl
-a59a5ec1938370cd401b257619848960  models/openface/nn4.v1.t7
-```
-
 ## With Docker
-This repo can be deployed as a container with [Docker](https://www.docker.com/)
-for CPU mode.
-Be sure you have checked out the submodules and downloaded
-the models as described above.
+This repo can be used as a container with
+[Docker](https://www.docker.com/) for CPU mode.
 Depending on your Docker configuration, you may need to
 run the docker commands as root.
 
-To use, place your images in `openface` on your host and
-access them from the shared Docker directory.
+### Automated Docker Build
+The quickest way to getting started is to use our pre-built
+automated Docker build, which is available from
+[bamos/openface](https://hub.docker.com/r/bamos/openface/).
+This does not require or use a locally checked out copy of OpenFace.
+To use on your images, share a directory between your
+host and the Docker container.
 
 ```
-docker build -t openface ./docker
-docker run -p 9000:9000 -t -i -v $PWD:/openface openface /bin/bash
-cd /openface
+docker pull bamos/openface
+docker run -p 9000:9000 -p 8000:8000 -t -i bamos/openface /bin/bash
+cd /root/src/openface
 ./demos/compare.py images/examples/{lennon*,clapton*}
+./demos/classifier.py infer models/openface/celeb-classifier.nn4.small2.v1.pkl ./images/examples/carell.jpg
+./demos/web/start-servers.sh
+```
+
+
+### Building a Docker Container
+This builds a Docker container from a locally checked out copy of OpenFace,
+which will take about 2 hours on a modern machine.
+Be sure you have checked out the git submodules.
+Run the following commands from the `openface` directory.
+
+```
+docker build -t openface .
+docker run -p 9000:9000 -p 8000:8000 -t -i openface /bin/bash
+cd /root/src/openface
+./run-tests.sh
+./demos/compare.py images/examples/{lennon*,clapton*}
+./demos/classifier.py infer models/openface/celeb-classifier.nn4.small2.v1.pkl ./images/examples/carell.jpg
+./demos/web/start-servers.sh
 ```
 
 ### Docker in OSX
@@ -84,7 +88,7 @@ with at least 4GB of memory with `--virtualbox-memory 4096`.
 Be sure you have checked out the submodules and downloaded the models as
 described above.
 See the
-[Dockerfile](https://github.com/cmusatyalab/openface/blob/master/docker/Dockerfile)
+[Dockerfile](https://github.com/cmusatyalab/openface/blob/master/Dockerfile)
 as a reference.
 
 This project uses `python2` because of the `opencv`
@@ -100,16 +104,18 @@ and follow their
 [build instructions](http://docs.opencv.org/doc/tutorials/introduction/linux_install/linux_install.html).
 
 ### dlib
-dlib can alternatively by installed from [pypi](https://pypi.python.org/pypi/dlib),
-but might be slower than building manually because they are not
-compiled with AVX support.
+dlib can be installed from [pypi](https://pypi.python.org/pypi/dlib)
+or built manually and depends on boost libraries.
+Building dlib manually with
+[AVX support](http://dlib.net/face_landmark_detection_ex.cpp.html)
+provides higher performance.
 
-dlib requires boost libraries to be installed.
-
-To build manually, start by
-downloading
+To build manually, download
 [dlib v18.16](https://github.com/davisking/dlib/releases/download/v18.16/dlib-18.16.tar.bz2),
-then:
+then run the following commands.
+For the final command, make sure the directory is in your default
+Python path, which can be found with `sys.path` in a Python interpreter.
+In OSX, use `site-packages` instead of `dist-packages`.
 
 ```
 mkdir -p ~/src
@@ -120,7 +126,7 @@ mkdir build
 cd build
 cmake ../../tools/python
 cmake --build . --config Release
-cp dlib.so ..
+sudo cp dlib.so /usr/local/lib/python2.7/dist-packages
 ```
 
 At this point, you should be able to start your `python2`
@@ -141,9 +147,27 @@ where `$NAME` is as listed below.
 + [nn](https://github.com/torch/nn)
 + [optim](https://github.com/torch/optim)
 + [csvigo](https://github.com/clementfarabet/lua---csv)
-+ [cudnn.torch](https://github.com/soumith/cudnn.torch) (only for CUDA support)
++ [cunn](https://github.com/torch/cunn) (only with CUDA)
 + [fblualib](https://github.com/facebook/fblualib)
+  (only for [training a DNN](http://cmusatyalab.github.io/openface/training-new-models/))
++ [torchx](https://github.com/nicholas-leonard/torchx)
   (only for [training a DNN](http://cmusatyalab.github.io/openface/training-new-models/))
 
 At this point, the command-line program `th` should
 be available in your shell.
+
+### OpenFace
+In OSX, install `findutils` and `coreutils` with Brew or MacPorts for
+the prefixed GNU variants `gfind` and `gwc`.
+These are required for the commands to be compatible with
+the Linux defaults of these commands.
+
+From the root OpenFace directory,
+install the Python dependencies with
+`sudo python2 setup.py install`.
+
+Run [models/get-models.sh](https://github.com/cmusatyalab/openface/blob/master/models/get-models.sh)
+to download pre-trained OpenFace
+models on the combined CASIA-WebFace and FaceScrub database.
+This also downloads dlib's pre-trained model for face landmark detection.
+This will incur about 200MB of network traffic.

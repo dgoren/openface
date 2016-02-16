@@ -15,12 +15,11 @@ pages:
   - Demo 2 - Comparison: demo-2-comparison.md
   - Demo 3 - Training a Classifier: demo-3-classifier.md
 - User Guide:
-  - Usage: usage.md
+  - Usage and API Docs: usage.md
   - Setup: setup.md
   - FAQ: faq.md
 - DNN Models:
-  - Accuracy: accuracy.md
-  - Pre-Trained Models: models.md
+  - Models and Accuracies: models-and-accuracies.md
   - Training a DNN Model: training-new-models.md
   - Visualizations: visualizations.md
 - Release Notes: release-notes.md

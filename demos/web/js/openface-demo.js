@@ -1,5 +1,5 @@
 /*
-Copyright 2015 Carnegie Mellon University
+Copyright 2015-2016 Carnegie Mellon University
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -329,7 +329,7 @@ function changeServerCallback() {
     case "Local":
         socket.close();
         redrawPeople();
-        createSocket("ws:127.0.0.1:9000", "Local");
+        createSocket("ws:" + window.location.hostname + ":9000", "Local");
         break;
     case "CMU":
         socket.close();

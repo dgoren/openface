@@ -1,3 +1,13 @@
+# Note from Brandon on 2015-01-13:
+#
+#   Always push this from an OSX Docker machine.
+#
+#   If I build this on my Arch Linux desktop it works fine locally,
+#   but dlib gives an `Illegal Instruction (core dumped)` error in
+#   dlib.get_frontal_face_detector() when running on OSX in a Docker machine.
+#   Building in a Docker machine on OSX fixes this issue and the built
+#   container successfully deploys on my Arch Linux desktop.
+
 FROM ubuntu:14.04
 MAINTAINER Brandon Amos <brandon.amos.cs@gmail.com>
 
@@ -7,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     gfortran \
     git \
+    graphicsmagick \
     libatlas-dev \
     libavcodec-dev \
     libavformat-dev \
@@ -17,23 +28,21 @@ RUN apt-get update && apt-get install -y \
     libswscale-dev \
     pkg-config \
     python-dev \
-    python-pip \
-    wget \
+    python-numpy \
+    python-protobuf\
     zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN pip2 install numpy scipy pandas
-RUN pip2 install scikit-learn scikit-image
-
 RUN curl -s https://raw.githubusercontent.com/torch/ezinstall/master/install-deps | bash -e
 RUN git clone https://github.com/torch/distro.git ~/torch --recursive
-RUN cd ~/torch && ./install.sh
-
-RUN ~/torch/install/bin/luarocks install nn
-RUN ~/torch/install/bin/luarocks install dpnn
-RUN ~/torch/install/bin/luarocks install image
-RUN ~/torch/install/bin/luarocks install optim
-RUN ~/torch/install/bin/luarocks install csvigo
+RUN cd ~/torch && ./install.sh && \
+    cd install/bin && \
+    ./luarocks install nn && \
+    ./luarocks install dpnn && \
+    ./luarocks install image && \
+    ./luarocks install optim && \
+    ./luarocks install csvigo && \
+    ./luarocks install torchx
 
 RUN cd ~ && \
     mkdir -p src && \
@@ -45,6 +54,7 @@ RUN cd ~ && \
     cd release && \
     cmake -D CMAKE_BUILD_TYPE=RELEASE \
           -D CMAKE_INSTALL_PREFIX=/usr/local \
+          -D BUILD_PYTHON_SUPPORT=ON \
           .. && \
     make -j8 && \
     make install
@@ -61,6 +71,4 @@ RUN cd ~ && \
     cd build && \
     cmake ../../tools/python && \
     cmake --build . --config Release && \
-    cp dlib.so ..
-
-EXPOSE 9000
+    cp dlib.so /usr/local/lib/python2.7/dist-packages

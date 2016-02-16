@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 #
-# Copyright 2015 Carnegie Mellon University
+# Copyright 2015-2016 Carnegie Mellon University
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,16 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
-fileDir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(fileDir, ".."))
-
 import argparse
 import cv2
+import numpy as np
+import os
 import random
 import shutil
 
+import openface
+import openface.helper
+from openface.data import iterImgs
+
+fileDir = os.path.dirname(os.path.realpath(__file__))
 modelDir = os.path.join(fileDir, '..', 'models')
 dlibModelDir = os.path.join(modelDir, 'dlib')
 openfaceModelDir = os.path.join(modelDir, 'openface')
@@ -40,7 +42,7 @@ def write(vals, fName):
 
 
 def computeMeanMain(args):
-    align = NaiveDlib(args.dlibFaceMean, args.dlibFacePredictor)
+    align = openface.AlignDlib(args.dlibFaceMean, args.dlibFacePredictor)
 
     imgs = list(iterImgs(args.inputDir))
     if args.numImages > 0:
@@ -83,13 +85,13 @@ def alignMain(args):
     random.shuffle(imgs)
 
     if args.landmarks == 'outerEyesAndNose':
-        landmarkIndices = NaiveDlib.OUTER_EYES_AND_NOSE
+        landmarkIndices = openface.AlignDlib.OUTER_EYES_AND_NOSE
     elif args.landmarks == 'innerEyesAndBottomLip':
-        landmarkIndices = NaiveDlib.INNER_EYES_AND_BOTTOM_LIP
+        landmarkIndices = openface.AlignDlib.INNER_EYES_AND_BOTTOM_LIP
     else:
         raise Exception("Landmarks unrecognized: {}".format(args.landmarks))
 
-    align = NaiveDlib(args.dlibFacePredictor)
+    align = openface.AlignDlib(args.dlibFacePredictor)
 
     nFallbacks = 0
     for imgObject in imgs:
@@ -101,9 +103,8 @@ def alignMain(args):
         if not os.path.isfile(imgName):
             rgb = imgObject.getRGB()
             if rgb is not None:
-                print(imgName, type(rgb), rgb.shape)
-                outRgb = align.alignImg('affine', args.size, rgb,
-                                        landmarkIndices=landmarkIndices)
+                outRgb = align.align(args.size, rgb,
+                                     landmarkIndices=landmarkIndices)
             else:
                 outRgb = None
             if args.fallbackLfw and outRgb is None:
@@ -130,10 +131,6 @@ if __name__ == '__main__':
                         default=os.path.join(dlibModelDir, "mean.csv"))
     parser.add_argument('--dlibFacePredictor', type=str, help="Path to dlib's face predictor.",
                         default=os.path.join(dlibModelDir, "shape_predictor_68_face_landmarks.dat"))
-    parser.add_argument('--dlibRoot', type=str,
-                        default=os.path.expanduser(
-                            "~/src/dlib-18.16/python_examples"),
-                        help="dlib directory with the dlib.so Python library.")
 
     subparsers = parser.add_subparsers(dest='mode', help="Mode")
     computeMeanParser = subparsers.add_parser(
@@ -153,12 +150,6 @@ if __name__ == '__main__':
                                  help="If alignment doesn't work, fallback to copying the deep funneled version from this directory..")
 
     args = parser.parse_args()
-
-    sys.path = [args.dlibRoot] + sys.path
-    import openface
-    import openface.helper
-    from openface.data import iterImgs
-    from openface.alignment import NaiveDlib
 
     if args.mode == 'computeMean':
         computeMeanMain(args)

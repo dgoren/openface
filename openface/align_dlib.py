@@ -1,4 +1,4 @@
-# Copyright 2015 Carnegie Mellon University
+# Copyright 2015-2016 Carnegie Mellon University
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,16 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
+"""Module for dlib-based alignment."""
+
 import cv2
 import dlib
 import numpy as np
-import os
-import random
-import sys
-
-from .. import helper
-from .. import data
 
 TEMPLATE = np.float32([
     (0.0792396913815, 0.339223741112), (0.0829219487236, 0.456955367943),
@@ -63,17 +58,49 @@ TPL_MIN, TPL_MAX = np.min(TEMPLATE, axis=0), np.max(TEMPLATE, axis=0)
 MINMAX_TEMPLATE = (TEMPLATE - TPL_MIN) / (TPL_MAX - TPL_MIN)
 
 
-class NaiveDlib:
-    # https://github.com/cmusatyalab/openface/blob/master/images/dlib-landmark-mean.png
-    INNER_EYES_AND_BOTTOM_LIP = np.array([39, 42, 57])
-    OUTER_EYES_AND_NOSE = np.array([36, 45, 33])
+class AlignDlib:
+    """
+    Use `dlib's landmark estimation <http://blog.dlib.net/2014/08/real-time-face-pose-estimation.html>`_ to align faces.
+
+    The alignment preprocess faces for input into a neural network.
+    Faces are resized to the same size (such as 96x96) and transformed
+    to make landmarks (such as the eyes and nose) appear at the same
+    location on every image.
+
+    Normalized landmarks:
+
+    .. image:: ../images/dlib-landmark-mean.png
+    """
+
+    #: Landmark indices corresponding to the inner eyes and bottom lip.
+    INNER_EYES_AND_BOTTOM_LIP = [39, 42, 57]
+
+    #: Landmark indices corresponding to the outer eyes and nose.
+    OUTER_EYES_AND_NOSE = [36, 45, 33]
 
     def __init__(self, facePredictor):
-        """Initialize the dlib-based alignment."""
+        """
+        Instantiate an 'AlignDlib' object.
+
+        :param facePredictor: The path to dlib's
+        :type facePredictor: str
+        """
+        assert facePredictor is not None
+
         self.detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor(facePredictor)
 
     def getAllFaceBoundingBoxes(self, rgbImg):
+        """
+        Find all face bounding boxes in an image.
+
+        :param rgbImg: RGB image to process. Shape: (height, width, 3)
+        :type rgbImg: numpy.ndarray
+        :return: All face bounding boxes in an image.
+        :rtype: dlib.rectangles
+        """
+        assert rgbImg is not None
+
         try:
             return self.detector(rgbImg, 1)
         except Exception as e:
@@ -82,31 +109,77 @@ class NaiveDlib:
             return []
 
     def getLargestFaceBoundingBox(self, rgbImg):
+        """
+        Find the largest face bounding box in an image.
+
+        :param rgbImg: RGB image to process. Shape: (height, width, 3)
+        :type rgbImg: numpy.ndarray
+        :return: The largest face bounding box in an image, or None.
+        :rtype: dlib.rectangle
+        """
+        assert rgbImg is not None
+
         faces = self.getAllFaceBoundingBoxes(rgbImg)
         if len(faces) > 0:
             return max(faces, key=lambda rect: rect.width() * rect.height())
+        else:
+            return None
 
-    def align(self, rgbImg, bb):
+    def findLandmarks(self, rgbImg, bb):
+        """
+        Find the landmarks of a face.
+
+        :param rgbImg: RGB image to process. Shape: (height, width, 3)
+        :type rgbImg: numpy.ndarray
+        :param bb: Bounding box around the face to find landmarks for.
+        :type bb: dlib.rectangle
+        :return: Detected landmark locations.
+        :rtype: list of (x,y) tuples
+        """
+        assert rgbImg is not None
+        assert bb is not None
+
         points = self.predictor(rgbImg, bb)
         return list(map(lambda p: (p.x, p.y), points.parts()))
 
-    def alignImg(self, method, size, rgbImg, bb=None,
-                 landmarks=None, landmarkIndices=INNER_EYES_AND_BOTTOM_LIP):
+    def align(self, imgDim, rgbImg, bb=None,
+              landmarks=None, landmarkIndices=INNER_EYES_AND_BOTTOM_LIP):
+        r"""align(imgDim, rgbImg, bb=None, landmarks=None, landmarkIndices=INNER_EYES_AND_BOTTOM_LIP)
+
+        Transform and align a face in an image.
+
+        :param imgDim: The edge length in pixels of the square the image is resized to.
+        :type imgDim: int
+        :param rgbImg: RGB image to process. Shape: (height, width, 3)
+        :type rgbImg: numpy.ndarray
+        :param bb: Bounding box around the face to align. \
+                   Defaults to the largest face.
+        :type bb: dlib.rectangle
+        :param landmarks: Detected landmark locations. \
+                          Landmarks found on `bb` if not provided.
+        :type landmarks: list of (x,y) tuples
+        :param landmarkIndices: The indices to transform to.
+        :type landmarkIndices: list of ints
+        :return: The aligned RGB image. Shape: (imgDim, imgDim, 3)
+        :rtype: numpy.ndarray
+        """
+        assert imgDim is not None
+        assert rgbImg is not None
+        assert landmarkIndices is not None
+
         if bb is None:
             bb = self.getLargestFaceBoundingBox(rgbImg)
             if bb is None:
                 return
 
         if landmarks is None:
-            landmarks = self.align(rgbImg, bb)
+            landmarks = self.findLandmarks(rgbImg, bb)
 
         npLandmarks = np.float32(landmarks)
+        npLandmarkIndices = np.array(landmarkIndices)
 
-        if method == 'affine':
-            H = cv2.getAffineTransform(npLandmarks[landmarkIndices],
-                                       size * MINMAX_TEMPLATE[landmarkIndices])
-            thumbnail = cv2.warpAffine(rgbImg, H, (size, size))
-        else:
-            raise Exception('Unrecognized method: {}'.format(method))
+        H = cv2.getAffineTransform(npLandmarks[npLandmarkIndices],
+                                   imgDim * MINMAX_TEMPLATE[npLandmarkIndices])
+        thumbnail = cv2.warpAffine(rgbImg, H, (imgDim, imgDim))
 
         return thumbnail

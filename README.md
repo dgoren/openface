@@ -11,7 +11,7 @@ deep neural networks.*
 [travis-image]: https://travis-ci.org/cmusatyalab/openface.png?branch=master
 [travis]: http://travis-ci.org/cmusatyalab/openface
 
-[release-image]: http://img.shields.io/badge/release-0.1.1-blue.svg?style=flat
+[release-image]: http://img.shields.io/badge/release-0.2.0-blue.svg?style=flat
 [releases]: https://github.com/cmusatyalab/openface/releases
 
 [license-image]: http://img.shields.io/badge/license-Apache--2-blue.svg?style=flat
@@ -23,6 +23,7 @@ deep neural networks.*
 ---
 
 + Website: http://cmusatyalab.github.io/openface/
++ [API Documentation](http://openface-api.readthedocs.org/en/latest/index.html)
 + Join the
   [cmu-openface group](https://groups.google.com/forum/#!forum/cmu-openface)
   or the
@@ -42,7 +43,7 @@ and should not be attributed to their employers or funding sources.
 
 # What's in this repository?
 + [batch-represent](https://github.com/cmusatyalab/openface/tree/master/batch-represent): Generate representations from
-  a batch of images, stored in a directory by names.
+  a batch of images. [Example directory structure.](https://gist.github.com/bamos/f03037f5df7e05ad0cc8)
 + [demos/web](https://github.com/cmusatyalab/openface/tree/master/demos/web): Real-time web demo.
 + [demos/compare.py](https://github.com/cmusatyalab/openface/tree/master/demos/compare.py): Demo to compare two images.
 + [demos/vis-outputs.lua](https://github.com/cmusatyalab/openface/tree/master/demos/vis-outputs.lua): Demo to
@@ -51,7 +52,8 @@ and should not be attributed to their employers or funding sources.
 + [evaluation](https://github.com/cmusatyalab/openface/blob/master/evaluation): LFW accuracy evaluation scripts.
 + [openface](https://github.com/cmusatyalab/openface/tree/master/openface): Python library code.
 + [models](https://github.com/cmusatyalab/openface/tree/master/models): Model directory for openface and 3rd party libraries.
-+ [training](https://github.com/cmusatyalab/openface/tree/master/training): Scripts to train new OpenFace models.
++ [tests](https://github.com/cmusatyalab/openface/tree/master/tests): Tests for scripts and library code, including neural network training.
++ [training](https://github.com/cmusatyalab/openface/tree/master/training): Scripts to train new OpenFace neural network models.
 + [util](https://github.com/cmusatyalab/openface/tree/master/util): Utility scripts.
 
 # Citations
@@ -63,25 +65,25 @@ The reference may change in the future.
 The BibTeX entry requires the `url` LaTeX package.
 
 ```
-@misc{amos2015openface,
+@misc{amos2016openface,
     title        = {{OpenFace: Face Recognition with Deep Neural Networks}},
-    author       = {Amos, Brandon and Harkes, Jan and Pillai, Padmanabhan and Elgazzar, Khalid and Satyanarayanan, Mahadev},
+    author       = {Amos, Brandon and Ludwiczuk, Bartosz and Harkes, Jan and
+                    Pillai, Padmanabhan and Elgazzar, Khalid and Satyanarayanan, Mahadev},
     howpublished = {\url{http://github.com/cmusatyalab/openface}},
-    note         = {Accessed: 2015-11-11}
+    note         = {Accessed: 2016-01-11}
 }
 
-Brandon Amos, Jan Harkes, Padmanabhan Pillai, Khalid Elgazzar,
-and Mahadev Satyanarayanan.
+Brandon Amos, Bartosz Ludwiczuk, Jan Harkes, Padmanabhan Pillai,
+Khalid Elgazzar, and Mahadev Satyanarayanan.
 OpenFace: Face Recognition with Deep Neural Networks.
 http://github.com/cmusatyalab/openface.
-Accessed: 2015-11-11.
+Accessed: 2016-01-11
 ```
 
 # Licensing
-The source code and trained models `nn4.v1.t7` and
-`celeb-classifier.nn4.v1.t7` are copyright
-Carnegie Mellon University and licensed under the
-[Apache 2.0 License](./LICENSE).
+Unless otherwise stated, the source code and trained Torch and Python
+model files are copyright Carnegie Mellon University and licensed
+under the [Apache 2.0 License](./LICENSE).
 Portions from the following third party sources have
 been modified and are included in this repository.
 These portions are noted in the source files and are

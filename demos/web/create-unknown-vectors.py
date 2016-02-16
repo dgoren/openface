@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 #
-# Copyright 2015 Carnegie Mellon University
+# Copyright 2015-2016 Carnegie Mellon University
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 import sys
 sys.path.append(".")
-sys.path.append("/home/bamos/src/dlib-18.16/python_examples")
 
 import argparse
 import numpy as np
@@ -29,11 +28,16 @@ import openface
 from openface.alignment import NaiveDlib
 from openface.data import iterImgs
 
+fileDir = os.path.dirname(os.path.realpath(__file__))
+modelDir = os.path.join(fileDir, '..', 'models')
+dlibModelDir = os.path.join(modelDir, 'dlib')
+openfaceModelDir = os.path.join(modelDir, 'openface')
+
 parser = argparse.ArgumentParser()
 parser.add_argument('imgDir', type=str, help="Input image directory.")
 parser.add_argument('--numImages', type=int, default=1000)
 parser.add_argument('--model', type=str, help="TODO",
-                    default="./models/openface/nn4.v1.t7")
+                    default=os.path.join(openfaceModelDir, 'nn4.small2.v1.t7'))
 parser.add_argument('--dlibFacePredictor', type=str, help="Path to dlib's face predictor.",
                     default=os.path.join(dlibModelDir, "shape_predictor_68_face_landmarks.dat"))
 parser.add_argument('--outputFile', type=str,
@@ -44,7 +48,7 @@ parser.add_argument('--imgDim', type=int, help="Default image size.",
 args = parser.parse_args()
 
 align = NaiveDlib(args.dlibFacePredictor)
-openface = openface.TorchWrap(args.model, imgDim=args.imgDim, cuda=False)
+net = openface.TorchWrap(args.model, imgDim=args.imgDim, cuda=False)
 
 
 def getRep(imgPath):
